@@ -1,0 +1,465 @@
+import { useState } from "react";
+import API from "../api/api";
+import { useNavigate } from "react-router-dom";
+import "./Slideauth.css";
+
+export default function SlideAuth() {
+  const [isSignup, setIsSignup] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const [signupData, setSignupData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    password: "",
+    role: "employee",
+  });
+
+  const [loginData, setLoginData] = useState({
+    email: "",
+    password: "",
+  });
+
+  const navigate = useNavigate();
+
+  const handleSignupChange = (e) => {
+    const { name, value } = e.target;
+    setSignupData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleLoginChange = (e) => {
+    const { name, value } = e.target;
+    setLoginData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSignupSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+    try {
+      await API.post("/users/register", signupData);
+      alert("Account created successfully!");
+      setIsSignup(false);
+    } catch (err) {
+      setError(err.response?.data?.message || "Signup failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLoginSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+    try {
+      const { data } = await API.post("/users/login", loginData);
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+      navigate("/dashboard");
+    } catch (err) {
+      setError(err.response?.data?.message || "Login failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleForms = () => {
+    setIsSignup(!isSignup);
+  };
+
+  return (
+    <div className="main">
+      <input
+        type="checkbox"
+        id="chk"
+        aria-hidden="true"
+        checked={isSignup}
+        onChange={toggleForms}
+      />
+
+      {/* Signup Section */}
+      <div className="signup">
+        <form onSubmit={handleSignupSubmit}>
+          <label htmlFor="chk" aria-hidden="true" onClick={toggleForms}>
+            Sign up
+          </label>
+
+          {error && isSignup && (
+            <div className="error-message">
+              <span className="error-icon">⚠️</span> {error}
+            </div>
+          )}
+
+          <input
+            type="text"
+            name="name"
+            placeholder="Full name"
+            required
+            value={signupData.name}
+            onChange={handleSignupChange}
+            disabled={loading}
+          />
+          <input
+            type="email"
+            name="email"
+            placeholder="Email"
+            required
+            value={signupData.email}
+            onChange={handleSignupChange}
+            disabled={loading}
+          />
+          <input
+            type="tel"
+            name="phone"
+            placeholder="Phone number"
+            required
+            value={signupData.phone}
+            onChange={handleSignupChange}
+            disabled={loading}
+          />
+          <input
+            type="password"
+            name="password"
+            placeholder="Password"
+            required
+            value={signupData.password}
+            onChange={handleSignupChange}
+            disabled={loading}
+          />
+
+          {/* Enhanced Role Select */}
+          <div className="role-select-container">
+            <select
+              name="role"
+              value={signupData.role}
+              onChange={handleSignupChange}
+              disabled={loading}
+              className="role-select"
+            >
+              <option value="employee">👨‍💼 Employee</option>
+              <option value="manager">👔 Manager</option>
+            </select>
+            <div className="select-arrow">▼</div>
+          </div>
+
+          <button type="submit" disabled={loading}>
+            {loading ? "Creating Account..." : "Sign up"}
+          </button>
+        </form>
+      </div>
+
+      {/* Login Section */}
+      <div className="login">
+        {/* Slide-up/down Icon */}
+        <div className="slide-icon" onClick={toggleForms}>
+          <span>{isSignup ? "▼" : "▲"}</span>
+        </div>
+        
+        <form onSubmit={handleLoginSubmit}>
+          <label htmlFor="chk" aria-hidden="true" onClick={toggleForms}>
+            Login
+          </label>
+
+          {error && !isSignup && (
+            <div className="error-message">
+              <span className="error-icon">⚠️</span> {error}
+            </div>
+          )}
+
+          <input
+            type="email"
+            name="email"
+            placeholder="Email"
+            required
+            value={loginData.email}
+            onChange={handleLoginChange}
+            disabled={loading}
+          />
+          <input
+            type="password"
+            name="password"
+            placeholder="Password"
+            required
+            value={loginData.password}
+            onChange={handleLoginChange}
+            disabled={loading}
+          />
+          <button type="submit" disabled={loading}>
+            {loading ? "Signing in..." : "Login"}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+//
+
+css
+
+body{
+	margin: 0;
+	padding: 0;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	min-height: 100vh;
+	font-family: 'Jost', sans-serif;
+	background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
+}
+.main{
+	width: 350px;
+	height: 500px;
+	background: red;
+	overflow: hidden;
+	background: url("https://doc-08-2c-docs.googleusercontent.com/docs/securesc/68c90smiglihng9534mvqmq1946dmis5/fo0picsp1nhiucmc0l25s29respgpr4j/1631524275000/03522360960922298374/03522360960922298374/1Sx0jhdpEpnNIydS4rnN4kHSJtU1EyWka?e=view&authuser=0&nonce=gcrocepgbb17m&user=03522360960922298374&hash=tfhgbs86ka6divo3llbvp93mg4csvb38") no-repeat center/ cover;
+	border-radius: 10px;
+	box-shadow: 5px 20px 50px #000;
+	position: relative;
+}
+#chk{
+	display: none;
+}
+.signup{
+	position: relative;
+	width:100%;
+	height: 100%;
+}
+label{
+	color: #fff;
+	font-size: 2.3em;
+	justify-content: center;
+	display: flex;
+	margin: 28px;
+	font-weight: bold;
+	cursor: pointer;
+	transition: .5s ease-in-out;
+}
+input{
+	width: 60%;
+	height: 10px;
+	background: #e0dede;
+	justify-content: center;
+	display: flex;
+	margin: 20px auto;
+	padding: 12px;
+	border: none;
+	outline: none;
+	border-radius: 5px;
+}
+
+button{
+	width: 60%;
+	height: 40px;
+	margin: 10px auto;
+	justify-content: center;
+	display: block;
+	color: #fff;
+	background: #573b8a;
+	font-size: 1em;
+	font-weight: bold;
+	margin-top: 20px;
+	outline: none;
+	border: none;
+	border-radius: 5px;
+	transition: .2s ease-in;
+	cursor: pointer;
+}
+button:hover{
+	background: #6d44b8;
+}
+.login{
+    margin-top: 100px;
+	height: 460px;
+	background: #eee;
+	border-radius: 20px;
+	transform: translateY(-180px);
+	transition: .8s ease-in-out;
+	/* Center the login container content */
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	position: relative;
+}
+.login form {
+	/* Center the form content vertically and horizontally */
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	height: 100%;
+	padding: 0;
+}
+.login label{
+	color: #573b8a;
+	transform: scale(.6);
+	/* Adjust margin for centering */
+	margin: 0;
+	margin-bottom: 30px;
+}
+
+#chk:checked ~ .login{
+	transform: translateY(-500px);
+}
+#chk:checked ~ .login label{
+	transform: scale(1);	
+}
+#chk:checked ~ .signup label{
+	transform: scale(.6);
+}
+/* Slide Icon Styles */
+.slide-icon {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 40px;
+    background: #573b8a;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+.slide-icon:hover {
+    background: #6d44b8;
+    transform: translateX(-50%) scale(1.1);
+}
+
+.slide-icon span {
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    transition: transform 0.3s ease;
+}
+
+.slide-icon:hover span {
+    transform: translateY(-2px);
+}
+
+
+/* Enhanced Role Select Styles */
+.role-select-container {
+  position: relative;
+  width: 67%;
+  margin: 20px auto;
+}
+
+.role-select {
+  width: 100%;
+  height: 34px;
+  background: #e0dede;
+  padding: 0 12px;
+  border: none;
+  outline: none;
+  border-radius: 5px;
+  font-family: 'Jost', sans-serif;
+  font-size: 14px;
+  appearance: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.role-select:focus {
+  background: #f0f0f0;
+  box-shadow: 0 0 5px rgba(87, 59, 138, 0.5);
+}
+
+.role-select:disabled {
+  background: #d0d0d0;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.select-arrow {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: #666;
+  font-size: 12px;
+  transition: transform 0.3s ease;
+}
+
+.role-select:focus + .select-arrow {
+  transform: translateY(-50%) rotate(180deg);
+}
+
+.role-description {
+  width: 60%;
+  margin: 8px auto;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  font-size: 11px;
+  color: #fff;
+  text-align: center;
+  border-left: 3px solid #573b8a;
+  transition: all 0.3s ease;
+}
+
+.login .role-description {
+  color: #573b8a;
+  background: rgba(87, 59, 138, 0.1);
+}
+
+/* Error Message Styling */
+.error-message {
+  background: rgba(255, 235, 235, 0.9);
+  color: #d32f2f;
+  padding: 10px 12px;
+  border-radius: 5px;
+  font-size: 12px;
+  text-align: center;
+  width: 60%;
+  margin: 10px auto;
+  border: 1px solid #ffcdd2;
+  backdrop-filter: blur(5px);
+}
+
+.login .error-message {
+  background: rgba(255, 235, 235, 0.95);
+  color: #c62828;
+}
+
+/* Loading state for buttons */
+button:disabled {
+  background: #8a7baa;
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .main {
+    width: 300px;
+    height: 480px;
+  }
+  
+  input, .role-select-container, button, .role-description, .error-message {
+    width: 70%;
+  }
+  
+  label {
+    font-size: 2em;
+    margin: 40px;
+  }
+  
+  .slide-up-icon {
+    width: 35px;
+    height: 35px;
+    top: 12px;
+  }
+  
+  .slide-up-icon span {
+    font-size: 16px;
+  }
+}
